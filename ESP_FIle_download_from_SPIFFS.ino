@@ -94,6 +94,8 @@ void loop(void) {
 void HomePage() {
   SendHTML_Header();
   webpage += F("<a href='/download'><button>Download</button></a>");
+  webpage += F("</br></br>");
+  webpage += listAllFiles();
   append_page_footer();
   SendHTML_Content();
   SendHTML_Stop(); // Stop is needed because no content length was sent
@@ -103,11 +105,11 @@ void File_Download() { // This gets called twice, the first pass selects the inp
   if (server.args() > 0 ) { // Arguments were received
     if (server.hasArg("download")) SD_file_download(server.arg(0));
   }
-  else SelectInput("File Download", "Enter filename to download", "download", "download");
+  else SelectInput("File Download", "Enter filename to download", "download", "Download");
 }
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 void SD_file_download(String filename) {
-  File download = SPIFFS.open("/" + filename, "w");
+  File download = SPIFFS.open("/" + filename, "r");
   if (download) {
     server.sendHeader("Content-Type", "text/text");
     server.sendHeader("Content-Disposition", "attachment; filename=" + filename);
@@ -140,11 +142,13 @@ void SendHTML_Stop() {
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 void SelectInput(String heading1, String heading2, String command, String arg_calling_name) {
   SendHTML_Header();
-  webpage += F("<h3 class='rcorners_m'>"); webpage += heading1 + "</h3><br>";
+  webpage += F("<h3 class='rcorners_m'>"); webpage += heading1 + "</h3></br>";
   webpage += F("<h3>"); webpage += heading2 + "</h3>";
   webpage += F("<FORM action='/"); webpage += command + "' method='post'>"; // Must match the calling argument e.g. '/chart' calls '/chart' after selection but with arguments!
-  webpage += F("<input type='text' name='"); webpage += arg_calling_name; webpage += F("' value=''><br>");
-  webpage += F("<type='submit' name='"); webpage += arg_calling_name; webpage += F("' value=''><br><br>");
+  webpage += F("<input type='text' name='"); webpage += arg_calling_name; webpage += F("' value=''></br>");
+//  webpage += F("<type='submit' name='"); webpage += arg_calling_name; webpage += F("' value=''></br></br>");
+  webpage += F("<input type='submit' name='"); webpage += command; webpage += F("' value='"); webpage += arg_calling_name; webpage += F("'><br><br>");
+  webpage += listAllFiles();
   append_page_footer();
   SendHTML_Content();
   SendHTML_Stop();
@@ -153,8 +157,21 @@ void SelectInput(String heading1, String heading2, String command, String arg_ca
 void ReportFileNotPresent(String target) {
   SendHTML_Header();
   webpage += F("<h3>File does not exist</h3>");
-  webpage += F("<a href='/"); webpage += target + "'>[Back]</a><br><br>";
+  webpage += F("<a href='/"); webpage += target + "'>[Back]</a></br></br>";
   append_page_footer();
   SendHTML_Content();
   SendHTML_Stop();
+}
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+String listAllFiles() {
+  String webpage;
+  Dir dir = SPIFFS.openDir("");
+  while (dir.next()) {
+    webpage += dir.fileName();
+    webpage += F(" - ");
+    webpage += dir.fileSize();
+    webpage += F("</br>");
+
+    return webpage;
+  }
 }
