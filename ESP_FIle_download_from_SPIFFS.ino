@@ -50,9 +50,17 @@ ESP32WebServer server(80);
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 void setup(void) {
   Serial.begin(115200);
+  Serial.println();
+
+  WiFi.mode(WIFI_STA);
+#ifndef USE_DHCP
+  Serial.println("Use Static IP.");
   if (!WiFi.config(local_IP, gateway, subnet, dns)) { //WiFi.config(ip, gateway, subnet, dns1, dns2);
     Serial.println("WiFi STATION Failed to configure Correctly");
   }
+#else
+  Serial.println("Get IP from DHCP.");
+#endif
   wifiMulti.addAP(ssid_1, password_1);  // add Wi-Fi networks you want to connect to, it connects strongest to weakest
   wifiMulti.addAP(ssid_2, password_2);  // Adjust the values in the Network tab
   wifiMulti.addAP(ssid_3, password_3);
